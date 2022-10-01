@@ -80,3 +80,8 @@ export const fetchSearchResults = (queryParams: SearchQueryParams): APIResponse<
         params: queryParams
     })
 }
+
+export const queryFn = async ({ queryKey }) => {
+    const { data } = await axios.get(`${api_path}/${queryKey}`);
+    return data;
+}

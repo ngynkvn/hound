@@ -3,15 +3,15 @@ import styles from "./search.module.css";
 import { SearchResults } from "../../api";
 import { FiChevronDown } from "react-icons/fi";
 
-export const SearchResultsView = ({ data }: { data?: SearchResults; }) => {
+export const SearchResultsView = ({ data, query }: { data?: SearchResults; query: string }) => {
     const results = Object.entries(data?.Results ?? {});
     return (
         <div className={styles["search--result"]}>
-            {results.map(ResultItem)}
+            {results.map((r => ResultItem(r, query)))}
         </div>
     );
 };
-const ResultItem = ([name, result]: [string, api.Result]) => {
+const ResultItem = ([name, result]: [string, api.Result], query: string) => {
     return (
         <div className={styles["search--result--repo"]}>
             <h3>
@@ -23,19 +23,19 @@ const ResultItem = ([name, result]: [string, api.Result]) => {
                     <FiChevronDown onClick={() => alert("TODO")} />
                 </a>
             </h3>
-            <div>{result.Matches.map(MatchResult)}</div>
+            <div>{result.Matches.map(m => MatchResult(m, query))}</div>
         </div>
     );
 };
-const MatchResult = (m: api.MatchResult) => {
+const MatchResult = (m: api.MatchResult, query: string) => {
     return (
         <div key={m.Filename}>
-            <div>{m.Filename}</div>
-            <div>{m.Matches.map(MatchItem)}</div>
+            <div><a>{m.Filename}</a></div>
+            <div>{m.Matches.map(m => MatchItem(m, query))}</div>
         </div>
     );
 };
-const MatchItem = (m: api.Match) => {
+const MatchItem = (m: api.Match, query: string) => {
     return (
         <div className={styles["search--match--item"]}>
             {m.Before.map((line, i, { length }) => {
@@ -43,9 +43,7 @@ const MatchItem = (m: api.Match) => {
                     <Line number={m.LineNumber - (length - i)} line={line} />
                 );
             })}
-            <hr />
-            <Line number={m.LineNumber} line={m.Line} />
-            <hr />
+            <Line number={m.LineNumber} line={m.Line} query={query} />
             {m.After.map((line, i) => {
                 return <Line number={m.LineNumber + 1 + i} line={line} />;
             })}
@@ -55,8 +53,30 @@ const MatchItem = (m: api.Match) => {
 type LineProps = {
     number: number;
     line: string;
+    query?: string;
 };
-const Line = ({ number, line }: LineProps) => {
+const Line = ({ number, line, query }: LineProps) => {
+    if(query) {
+        try {
+            const re = new RegExp(query);
+            const search = line.match(re)
+            if(!search || search.index === undefined) {
+                throw `could not find regex in string ${search} ${search?.index}`
+            }
+            const match_index = search.index;
+            const len_match = search[0].length;
+            const before = line.slice(0, match_index)
+            const middle = line.slice(match_index, match_index+len_match)
+            const after = line.slice(match_index+len_match)
+            return (
+                <div>
+                    <span>{number}</span>: {before}<span className={styles["search--line--match"]}>{middle}</span>{after}
+                </div>
+            );
+        } catch(e) {
+            console.warn("regular expression failed to parse." + e)
+        }
+    }
     return (
         <div>
             <span>{number}</span>: <span>{line}</span>

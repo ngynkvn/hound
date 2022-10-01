@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useQueries, useQuery } from "react-query";
 import * as api from "../../api";
 import styles from "./search.module.css";
 import { ChangeEventHandler, useState } from "react";
@@ -7,24 +7,35 @@ import { SearchResultsView } from "./SearchResults";
 
 export const SearchBar = () => {
     const [query, setQuery] = useState("");
-    const { data, refetch, isLoading } = useQuery(
-        "query",
-        () => api.fetchSearchResults({
-            q: query,
-            stats: true,
-            repos: "*",
-            rng: "",
-            files: "",
-            excludeFiles: "",
-            i: false,
-            literal: false,
-        }),
+    const [
+        { data: queryData, refetch: fetchQueryData, isLoading: queryLoading },
+        { data: repos, isLoading: reposLoading },
+    ] = useQueries([
         {
+            queryKey: "query",
+            queryFn: () =>
+                api.fetchSearchResults({
+                    q: query,
+                    stats: true,
+                    repos: "*",
+                    rng: "",
+                    files: "",
+                    excludeFiles: "",
+                    i: false,
+                    literal: false,
+                }),
             enabled: false,
-        }
-    );
+        },
+        {
+            queryKey: "repos",
+            queryFn: api.fetchRepos,
+        },
+    ]);
+    if (!repos || reposLoading || queryLoading ) {
+        return <>Loading</>;
+    }
     const executeSearch = () => {
-        refetch();
+        fetchQueryData();
     };
     const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
         setQuery(e.target?.value);
@@ -34,16 +45,16 @@ export const SearchBar = () => {
             <div className={styles["search--searchbar"]}>
                 <input onChange={handleChange} value={query}></input>
                 <button onClick={executeSearch}>Submit</button>
-                <StatResults stats={data?.data.Stats} />
+                <StatResults stats={queryData?.data?.Stats} />
             </div>
             <div>
-                <SearchResultsView data={data?.data} />
+                <SearchResultsView data={queryData?.data} query={query} />
             </div>
         </div>
     );
 };
 
-const StatResults = ({ stats }: { stats?: SearchResults["Stats"]; }) => {
+const StatResults = ({ stats }: { stats?: SearchResults["Stats"] }) => {
     if (!stats) {
         return null;
     }
@@ -53,4 +64,3 @@ const StatResults = ({ stats }: { stats?: SearchResults["Stats"]; }) => {
         </span>
     );
 };
-
