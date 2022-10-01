@@ -7,7 +7,7 @@ import { SearchResultsView } from "./SearchResults";
 
 export const SearchBar = () => {
     const [queryInput, setQueryInput] = useState("");
-    const [lastQuerySent, setLastQuerySent] = useState("");
+    const [lastQuerySent, setLastQuerySent] = useState<RegExp>();
     const [
         { data: queryData, refetch: fetchQueryData, isLoading: queryLoading },
         { data: repos, isLoading: reposLoading },
@@ -27,7 +27,9 @@ export const SearchBar = () => {
                 }),
             enabled: false,
             onSuccess() {
-                setLastQuerySent(queryInput);
+                try {
+                    setLastQuerySent(new RegExp(queryInput));
+                } catch {}
             },
         },
         {

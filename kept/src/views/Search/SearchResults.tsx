@@ -3,22 +3,27 @@ import styles from "./search.module.css";
 import { SearchResults } from "../../api";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { useState } from "react";
+import React from "react";
 
 export const SearchResultsView = ({
     data,
     query,
 }: {
     data?: SearchResults;
-    query: string;
+    query: RegExp;
 }) => {
     const results = Object.entries(data?.Results ?? {});
     return (
         <div className={styles["search--result"]}>
-            {results.map((r) => ResultItem(r, query))}
+            {results.map((r) => <ResultItem key={r[0]+query} item={r} query={query}/>)}
         </div>
     );
 };
-const ResultItem = ([name, result]: [string, api.Result], query: string) => {
+type ResultItemProps = {
+    item: [string, api.Result],
+    query: RegExp
+}
+const ResultItem = ({item: [name, result], query}: ResultItemProps) => {
     return (
         <div className={styles["search--result--repo"]}>
             <h3>
@@ -27,15 +32,15 @@ const ResultItem = ([name, result]: [string, api.Result], query: string) => {
                     ({result.FilesWithMatch} matches){" "}
                 </span>
             </h3>
-            <div>{result.Matches.map((m) => <MatchResult m={m} query={query}/>)}</div>
+            <div>{result.Matches.map((m) => <MatchResult key={m.Filename} m={m} query={query}/>)}</div>
         </div>
     );
 };
-const MatchResult = ({m, query}: {m: api.MatchResult, query: string}) => {
+const MatchResult = React.memo(({m, query}: {m: api.MatchResult, query: RegExp}) => {
     const [collapsed, setCollapsed] = useState(false);
     const toggle = () => setCollapsed(!collapsed);
     return (
-        <div key={m.Filename}>
+        <div>
             <div>
                 <button
                     onClick={toggle}
@@ -46,35 +51,35 @@ const MatchResult = ({m, query}: {m: api.MatchResult, query: string}) => {
                     {collapsed ? <FiChevronUp /> : <FiChevronDown />}
                 </button>
             </div>
-            <div>{!collapsed && m.Matches.map((m) => MatchItem({m, query}))}</div>
+            <div>{!collapsed && m.Matches.map((m) => <MatchItem key={m.Line+m.LineNumber} m={m} query={query}/>)}</div>
         </div>
     );
-};
-const MatchItem = ({m, query}: {m: api.Match, query: string}) => {
+});
+const MatchItem = (({m, query}: {m: api.Match, query: RegExp}) => {
     return (
         <div className={styles["search--match--item"]}>
             {m.Before.map((line, i, { length }) => {
+                const number = m.LineNumber - (length - i);
                 return (
-                    <Line number={m.LineNumber - (length - i)} line={line} />
+                    <Line key={number} number={number} line={line} />
                 );
             })}
             <Line number={m.LineNumber} line={m.Line} query={query} />
             {m.After.map((line, i) => {
-                return <Line number={m.LineNumber + 1 + i} line={line} />;
+                return <Line key={m.LineNumber+1+i} number={m.LineNumber + 1 + i} line={line} />;
             })}
         </div>
     );
-};
+});
 type LineProps = {
     number: number;
     line: string;
-    query?: string;
+    query?: RegExp;
 };
-const Line = ({ number, line, query }: LineProps) => {
+const Line = React.memo(({ number, line, query }: LineProps) => {
     if (query) {
         try {
-            const re = new RegExp(query);
-            const search = line.match(re);
+            const search = line.match(query);
             if (!search || search.index === undefined) {
                 throw `could not find regex in string ${search} ${search?.index}`;
             }
@@ -101,4 +106,4 @@ const Line = ({ number, line, query }: LineProps) => {
             <span>{number}</span>: <span>{line}</span>
         </div>
     );
-};
+});
