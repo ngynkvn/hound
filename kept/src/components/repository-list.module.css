@@ -1,0 +1,17 @@
+.repository--item {
+    border: 1px solid white;
+    padding: 0.5ch;
+    margin: 0.5ch;
+}
+
+.repository--item > hr {
+    margin: 0;
+    padding-top: 0.1em;
+    margin-bottom: 0.5em;
+    border: 1px solid rgb(61, 61, 61);
+}
+
+.repository--subtext {
+    font-style: italic;
+    font-size: 0.9rem;
+}

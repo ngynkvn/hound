@@ -1,0 +1,10 @@
+.two-column {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    gap: 1ch;
+}
+
+/* DEBUG CSS */
+.two-column > * {
+    border: 1px solid red;
+}

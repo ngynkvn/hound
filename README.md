@@ -1,4 +1,8 @@
-# Hound
+# Hound (fork)
+
+Building a new frontend for the code index server.
+
+# Hound (original)
 
 [![Build Status](https://travis-ci.org/hound-search/hound.svg?branch=master)](https://travis-ci.org/hound-search/hound)
 [![.github/workflows/go.yaml](https://github.com/hound-search/hound/workflows/.github/workflows/go.yaml/badge.svg)](https://github.com/hound-search/hound/actions)
