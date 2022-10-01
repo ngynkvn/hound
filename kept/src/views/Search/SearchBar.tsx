@@ -6,7 +6,8 @@ import { SearchResults } from "../../api";
 import { SearchResultsView } from "./SearchResults";
 
 export const SearchBar = () => {
-    const [query, setQuery] = useState("");
+    const [queryInput, setQueryInput] = useState("");
+    const [lastQuerySent, setLastQuerySent] = useState("");
     const [
         { data: queryData, refetch: fetchQueryData, isLoading: queryLoading },
         { data: repos, isLoading: reposLoading },
@@ -15,7 +16,7 @@ export const SearchBar = () => {
             queryKey: "query",
             queryFn: () =>
                 api.fetchSearchResults({
-                    q: query,
+                    q: queryInput,
                     stats: true,
                     repos: "*",
                     rng: "",
@@ -25,30 +26,34 @@ export const SearchBar = () => {
                     literal: false,
                 }),
             enabled: false,
+            onSuccess() {
+                setLastQuerySent(queryInput);
+            },
         },
         {
             queryKey: "repos",
             queryFn: api.fetchRepos,
+            staleTime: Infinity,
         },
     ]);
-    if (!repos || reposLoading || queryLoading ) {
+    if (!repos || reposLoading || queryLoading) {
         return <>Loading</>;
     }
     const executeSearch = () => {
         fetchQueryData();
     };
     const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-        setQuery(e.target?.value);
+        setQueryInput(e.target?.value);
     };
     return (
         <div>
             <div className={styles["search--searchbar"]}>
-                <input onChange={handleChange} value={query}></input>
+                <input onChange={handleChange} value={queryInput}></input>
                 <button onClick={executeSearch}>Submit</button>
                 <StatResults stats={queryData?.data?.Stats} />
             </div>
             <div>
-                <SearchResultsView data={queryData?.data} query={query} />
+                <SearchResultsView data={queryData?.data} query={lastQuerySent} />
             </div>
         </div>
     );
