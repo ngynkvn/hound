@@ -1,0 +1,36 @@
+.two-column {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    gap: 1ch;
+}
+
+/* DEBUG CSS */
+.two-column > * {
+    border: 2px solid var(--border-color);
+    padding: 1ch;
+}
+
+.search--searchbar {
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 1ch;
+}
+
+.search--searchbar > :not(:first-child) {
+    margin-left: 1ch; 
+}
+
+.search--subtext {
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.search--match--item {
+    border: 1px solid var(--border-color);
+    margin: 1ch;
+    padding: 1ch;
+}
+
+.search--match--item > hr {
+    margin: 0;
+    padding: 0;
+}
